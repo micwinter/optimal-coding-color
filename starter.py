@@ -31,6 +31,8 @@ def sample_patches(image, num_patches, patch_size, color=False):
 
     return np.stack(samples)
 
+#def neur_nonlin():
+
 
 data_root = '../../data/val_256'
 
@@ -42,11 +44,61 @@ ims = [imageio.imread(os.path.join(data_root, x)) for x in images]
 
 # input noise is 8dB (sigma_nz = 0.4)
 
-# 100 neurons
 num_patches = 100
 patch_size = 16
 # sample = sample_patches(ims[0], num_patches, patch_size)
 samples = [sample_patches(im, num_patches, patch_size, color=False) for im in ims]
 samples = np.stack(samples)
 
-# We initialized filter weights and nonlinearity coefficients to random Gaussian values. Batch size was 100 patches, resampled after each update of the parameters. We trained the model for 100,000 iterations of gradient ascent with fixed step size
+# train
+iters = 100000
+step_size = 0.01
+batch_size = 100
+num_neurons = 100
+
+init_filters = np.random.rand(num_neurons, patch_size, patch_size)
+# TODO: assert filters are unit norm
+
+# training iterations
+for iter in range(iters):
+    im_noise =  np.random.normal(0,0.1,1) # image noise
+    resp_noise = np.random.normal(0,0.1,1)  # response noise
+    generator_signal = np.dot(W.T, curr_samples+im_noise)
+    responses = neur_nonlin(generator_signal) + resp_noise
+    # TODO: slope of the nonlinearity (g_i) gj = dfj/dyj
+    num_kernels = 500
+    # slope nonlinearity
+    coeffs = np.random.randint()
+    accum = 0
+    mus = np.arange(100)
+    # sigmas = spaces for smooth overlap of kernels
+    for k in range(num_kernels):
+        kernel = coef*np.exp(-1*((responses-mus)^2/()))
+
+    # objective function
+    # Gi is a diagonal matrix containing the local derivatives of the response functions gj (yj) at yj(xi)
+    # G = #TODO
+
+    # If input and output noises are assumed to be constant and Gaussian, with covariances C_nx and C_nr
+    # C_nx = input noise
+    # C_nr = output noise
+    likelihood = G*W.T*im_noise*W*G+resp_noise# C_rx
+    C_xr = np.linalg.inv(np.cov(curr_samples)) + W*G*(np.linalg.inv(likelihood))*G*W.T
+    h_x_r = (1/2)*np.log(2*np.pi*np.exp(1)*np.linalg.det(C_i_xr))
+
+# TODO: neural nonlinearity (f_i)
+
+
+
+
+
+
+# generator signal (y_i)
+
+# objective function
+
+# prior estimation
+
+# likelihood estimation
+
+# gradient ascent

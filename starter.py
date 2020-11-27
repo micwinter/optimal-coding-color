@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import os
 import torch
 
-def sample_patches(image, num_patches, patch_size):
+def sample_patches(image, num_patches, patch_size, color=False):
     """
     Sample N square MxM patches from an input image and return them in an NxMxM matrix.
     image (numpy array): Image to sample from
@@ -24,7 +24,10 @@ def sample_patches(image, num_patches, patch_size):
     sampled = valid_indices[:num_patches]
     sampled_indices = [np.where(orig_indices == x) for x in sampled]
     # create samples
-    samples = [image[int(x)-margin:int(x)+margin, int(y)-margin:int(y)+margin,:] for x,y in sampled_indices]
+    if color:
+        samples = [image[int(x)-margin:int(x)+margin, int(y)-margin:int(y)+margin,:] for x,y in sampled_indices]
+    else:
+        samples = [image[int(x)-margin:int(x)+margin, int(y)-margin:int(y)+margin] for x,y in sampled_indices]
 
     return np.stack(samples)
 
@@ -43,7 +46,7 @@ ims = [imageio.imread(os.path.join(data_root, x)) for x in images]
 num_patches = 100
 patch_size = 16
 # sample = sample_patches(ims[0], num_patches, patch_size)
-samples = [sample_patches(im, num_patches, patch_size) for im in ims]
+samples = [sample_patches(im, num_patches, patch_size, color=False) for im in ims]
 samples = np.stack(samples)
 
 # We initialized filter weights and nonlinearity coefficients to random Gaussian values. Batch size was 100 patches, resampled after each update of the parameters. We trained the model for 100,000 iterations of gradient ascent with fixed step size

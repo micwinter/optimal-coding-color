@@ -55,8 +55,14 @@ iters = 100000
 step_size = 0.01
 batch_size = 100
 num_neurons = 100
+init_filters = np.random.rand(num_neurons, patch_size, patch_size) #100 x 16 x 16
+flattened_filt = init_filters.reshape(100, -1) #100 by 16 squared
+norms = np.linalg.norm(flattened_filt, axis = 0)
+#[a/b for a, b in zip(A, B)] 
+divided = [flattened_filt/norms for flattened_filt, norms in zip(flattened_filt, norms)]
+w = np.stack(divided).reshape(num_neurons, patch_size, patch_size)
 
-init_filters = np.random.rand(num_neurons, patch_size, patch_size)
+
 # TODO: assert filters are unit norm
 
 # training iterations

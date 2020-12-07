@@ -17,11 +17,11 @@ import numpy as np
 
 def sample_patches(image, num_patches, patch_size):
     """
-    Sample N square MxMxD patches from an input image and return them in an NxMxMxD matrix.
+    Sample N square MxMxD patches from an input image and return them in an NxDxMxM matrix.
     image (np.array): Image to sample from, of size LxWxD, (length, width, num_channels)
     num_patches (int): Number of patches to sample from the input image
     patch_size (int): Size of the patch
-    returns: NxMxM matrix of samples from the image
+    returns: NxDxMxM matrix of samples from the image
     """
     # Get indices of image that are viable for sampling (don't sample indices that would cause a sample too far to an edge)
     h,w,c = image.shape
@@ -35,14 +35,14 @@ def sample_patches(image, num_patches, patch_size):
     # create samples
     samples = [image[int(x)-margin:int(x)+margin, int(y)-margin:int(y)+margin,:] for x,y in sampled_indices]
 
-    return np.stack(samples)
+    return np.stack(samples).transpose(0,3,1,2)
 
 def save_decoded_image(img, epoch, save_path):
     img = img.view(img.size(0), 1, 28, 28)
     save_image(img, os.path.join(save_path, 'linear_ae_image{}.png'.format(epoch)))
 
 # constants
-NUM_EPOCHS = 10
+NUM_EPOCHS = 100
 LEARNING_RATE = 1e-3
 BATCH_SIZE = 128
 IM_PATH = '../../data/landscapes_fla'
@@ -80,12 +80,12 @@ def get_device():
         device = 'cpu'
     return device
 
-class Autoencoder(nn.Module):
+class LinearAutoencoder(nn.Module):
     """
     Starter version of the model. The model is linear, and takes in HxWxD, down to number of neurons.
     """
     def __init__(self, in_features=108000, num_neurons=100):
-        super(Autoencoder, self).__init__()
+        super(LinearAutoencoder, self).__init__()
         # encoder
         self.enc = nn.Linear(in_features=in_features, out_features=num_neurons)
         # decoder
@@ -98,7 +98,27 @@ class Autoencoder(nn.Module):
         x = F.relu(self.dec(x))
         return x
 
-net = Autoencoder()
+class ConvAutoencoder(nn.Module):
+    """
+    Second version of the model. The model is convolutional, and takes in HxWxD, down to number of neurons.
+    """
+    def __init__(self, in_features=30, num_neurons=100):
+        super(ConvAutoencoder, self).__init__()
+        # encoder
+        # conv layer (depth from 30 --> 1), 3x3 kernels
+        self.enc = nn.Conv2d(30, 1, 3)
+        # decoder
+        self.dec = nn.ConvTranspose2d(1, 30, 3)
+
+    def forward(self, x):
+        # encoder
+        x = F.relu(self.enc(x))
+        # decoder
+        x = torch.sigmoid(self.dec(x)) # try with sigmoid or relu
+        return x
+
+# net = LinearAutoencoder()
+net = ConvAutoencoder()
 print(net)
 
 criterion = nn.MSELoss()
@@ -110,7 +130,8 @@ def train(net, trainloader, NUM_EPOCHS):
         running_loss = 0.0
         for batch in trainloader:
             batch = batch.to(device)
-            batch = batch.view(batch.size(0), -1)
+            # batch = batch.view(batch.size(0), -1) # if linear autoencoder
+            # if conv autoencoder
             optimizer.zero_grad()
             outputs = net(batch)
             loss = criterion(outputs, batch)

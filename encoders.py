@@ -50,6 +50,34 @@ class LinearAESpectrum(nn.Module):
         x = F.relu(self.dec(x))
         return x
 
+
+class LinearAESpectrum1(nn.Module):
+    """
+    Linear autoencoder that tries to learn 3 cone wavelength sensitivies. The model is linear, and takes in HxWxD, down to number of cones*number of wavelengths (in channels).
+    """
+    def __init__(self, in_channels, patch_size, num_cones=3):
+        super(LinearAESpectrum1, self).__init__()
+
+        in_features = in_channels*patch_size*patch_size
+        # out_features = num_cones*in_channels
+
+        # encoder
+        self.enc1 = nn.Linear(in_features=in_features, out_features=28)
+        self.enc2 = nn.Linear(in_features=28, out_features=3)
+        # decoder
+        self.dec1 = nn.Linear(in_features=3, out_features=28)
+        self.dec2 = nn.Linear(in_features=28, out_features=in_features)
+
+    def forward(self, x):
+        # encoder
+        x = F.relu(self.enc1(x))
+        x = F.relu(self.enc2(x))
+        # decoder
+        x = F.relu(self.dec1(x))
+        x = F.relu(self.dec2(x))
+        return x
+
+
 class ConvAutoencoder(nn.Module):
     """
     Second version of the model. The model is convolutional, and takes in HxWxD, down to number of neurons.

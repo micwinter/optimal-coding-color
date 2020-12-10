@@ -15,7 +15,7 @@ import numpy as np
 import datetime
 
 from utilities import sample_patches, get_device, save_decoded_image, viz_image_reconstruction, data_initializer
-from encoders import LinearAutoencoder, ConvAutoencoder, LinearAESpectrum, train_autoencoder
+from encoders import LinearAutoencoder, ConvAutoencoder, LinearAESpectrum, LinearAESpectrum1, train_autoencoder
 # from data_loading import data_initializer
 
 # constants for data loading
@@ -28,7 +28,7 @@ NUM_EPOCHS = 1000
 NUM_NEURONS = 100
 grid_LEARNING_RATE = [1e-4]#[1e1, 1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
 
-ext = 'linaespec'
+ext = 'linaespec1'
 
 for PATCH_SIZE in grid_PATCH_SIZE:
     for LEARNING_RATE in grid_LEARNING_RATE:
@@ -44,7 +44,7 @@ for PATCH_SIZE in grid_PATCH_SIZE:
         # train the network
         # net = LinearAutoencoder(patch_size=PATCH_SIZE, num_neurons=NUM_NEURONS)
         # net = ConvAutoencoder(in_channels=num_channels)
-        net = LinearAESpectrum(in_channels=num_channels, patch_size=PATCH_SIZE)
+        net = LinearAESpectrum1(in_channels=num_channels, patch_size=PATCH_SIZE)
         #print(net)
         criterion = nn.MSELoss()
         # load the neural network onto the device

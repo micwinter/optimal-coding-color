@@ -15,42 +15,38 @@ from spectral import *
 import numpy as np
 import datetime
 
+from encoders import LinearAutoencoder, ConvAutoencoder, LinearAESpectrum, train_autoencoder
 
-class ConvAutoencoder(nn.Module):
-    """
-    Second version of the model. The model is convolutional, and takes in HxWxD, down to number of neurons.
-    """
-    def __init__(self, in_features=30, latent_size=3):
-        super(ConvAutoencoder, self).__init__()
-        # encoder
-        # conv layer (depth from 30 --> 1), 3x3 kernels
-        self.enc = nn.Conv2d(in_features, latent_size, 3)
-        # decoder
-        self.dec = nn.ConvTranspose2d(latent_size, in_features, 3)
-
-    def forward(self, x):
-        # encoder
-        x = F.relu(self.enc(x))
-        # decoder
-        x = F.relu(self.dec(x))
-        # x = torch.sigmoid(self.dec(x)) # try with sigmoid or relu
-        return x
+PATCH_SIZE=16
 
 # net = LinearAutoencoder()
-net = ConvAutoencoder()
+net = LinearAESpectrum(in_channels=28, patch_size=PATCH_SIZE)
 
 
-checkpoint = torch.load('checkpoint_2020-12-09 18:51:42.135329.t7')
+checkpoint = torch.load('checkpoint_grid_ps_16_lr_0.0001_linaespec.t7')
 net.load_state_dict(checkpoint['state_dict'])
 # import ipdb; ipdb.set_trace()
 
 IM_PATH = '/media/big_hdd/opt-color/landscapes_fla'  # YOUR DATA PATH HERE
-train_im = envi.open(os.path.join(IM_PATH, 'landscape01.hdr'), os.path.join(IM_PATH, 'landscape01.fla'))
+train_im = envi.open(os.path.join(IM_PATH, 'hyperspectral_1.hdr'), os.path.join(IM_PATH, 'hyperspectral_1.fla'))
 
-temp = torch.Tensor(train_im[:,:,:])
+shared_wavelength = np.arange(430, 730, 10)
+
+# import ipdb; ipdb.set_trace()
+temp = torch.Tensor(train_im[:16,:16,:28])
 temp = temp[np.newaxis,:]
-out = net.enc(temp.permute(0,3,1,2))
-out_im = out.detach().numpy()[0,:,:,:].transpose(1,2,0)
-out_im = out_im/np.max(out_im)
-plt.imshow(out_im)
+# out = net.enc(temp.permute(0,3,1,2))
+# out_im = out.detach().numpy()[0,:,:,:].transpose(1,2,0)
+# out_im = out_im/np.max(out_im)
+# plt.imshow(out_im)
+# plt.savefig('output.png')
+
+# For linear AE sprectrum Evaluation
+out = net.enc(temp.reshape(1,-1))
+
+out = out.detach().numpy()
+for ii in range(3):
+    plt.plot(out[ii*28:(ii+1)*28])
+import ipdb; ipdb.set_trace()
+plt.legend(['Cone 1', 'Cone 2', 'Cone 3'])
 plt.savefig('output.png')

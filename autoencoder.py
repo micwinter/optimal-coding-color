@@ -15,18 +15,20 @@ import numpy as np
 import datetime
 
 from utilities import sample_patches, get_device, save_decoded_image, viz_image_reconstruction, data_initializer
-from encoders import LinearAutoencoder, ConvAutoencoder, train_autoencoder
+from encoders import LinearAutoencoder, ConvAutoencoder, LinearAESpectrum, train_autoencoder
 # from data_loading import data_initializer
 
 # constants for data loading
 IM_PATH = '/media/big_hdd/opt-color/landscapes_fla'  # YOUR DATA PATH HERE
 BATCH_SIZE = 128
 NUM_PATCHES = 1000
-grid_PATCH_SIZE = [16, 60, 100]
+grid_PATCH_SIZE = [16]#[16, 60, 100]
 # constants for autoencoder
 NUM_EPOCHS = 1000
 NUM_NEURONS = 100
-grid_LEARNING_RATE = [1e1, 1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
+grid_LEARNING_RATE = [1e-4]#[1e1, 1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
+
+ext = 'linaespec'
 
 for PATCH_SIZE in grid_PATCH_SIZE:
     for LEARNING_RATE in grid_LEARNING_RATE:
@@ -41,7 +43,8 @@ for PATCH_SIZE in grid_PATCH_SIZE:
 
         # train the network
         # net = LinearAutoencoder(patch_size=PATCH_SIZE, num_neurons=NUM_NEURONS)
-        net = ConvAutoencoder(in_features=num_channels)
+        # net = ConvAutoencoder(in_channels=num_channels)
+        net = LinearAESpectrum(in_channels=num_channels, patch_size=PATCH_SIZE)
         #print(net)
         criterion = nn.MSELoss()
         # load the neural network onto the device
@@ -53,11 +56,11 @@ for PATCH_SIZE in grid_PATCH_SIZE:
         plt.title('Train Loss | PS {} | LR {}'.format(PATCH_SIZE, LEARNING_RATE))
         plt.xlabel('Epochs')
         plt.ylabel('Loss')
-        plt.savefig('autoencoder_loss_ps_{}_lr_{}.png'.format(PATCH_SIZE, LEARNING_RATE))
+        plt.savefig('autoencoder_loss_ps_{}_lr_{}_{}.png'.format(PATCH_SIZE, LEARNING_RATE, ext))
         plt.close()
         now = datetime.datetime.now() # current timestamp
         torch.save({
           'state_dict': net.state_dict(),
 #           'optimizer': optimizer.state_dict(),
           'loss': train_loss
-          }, 'checkpoint_grid_ps_{}_lr_{}.t7'.format(PATCH_SIZE, LEARNING_RATE))
+          }, 'checkpoint_grid_ps_{}_lr_{}_{}.t7'.format(PATCH_SIZE, LEARNING_RATE, ext))

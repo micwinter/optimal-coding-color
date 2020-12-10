@@ -28,17 +28,39 @@ class LinearAutoencoder(nn.Module):
         x = F.relu(self.dec(x))
         return x
 
+class LinearAESpectrum(nn.Module):
+    """
+    Linear autoencoder that tries to learn 3 cone wavelength sensitivies. The model is linear, and takes in HxWxD, down to number of cones*number of wavelengths (in channels).
+    """
+    def __init__(self, in_channels, patch_size, num_cones=3):
+        super(LinearAESpectrum, self).__init__()
+
+        in_features = in_channels*patch_size*patch_size
+        out_features = num_cones*in_channels
+
+        # encoder
+        self.enc = nn.Linear(in_features=in_features, out_features=out_features)
+        # decoder
+        self.dec = nn.Linear(in_features=out_features, out_features=in_features)
+
+    def forward(self, x):
+        # encoder
+        x = F.relu(self.enc(x))
+        # decoder
+        x = F.relu(self.dec(x))
+        return x
+
 class ConvAutoencoder(nn.Module):
     """
     Second version of the model. The model is convolutional, and takes in HxWxD, down to number of neurons.
     """
-    def __init__(self, in_features=30, latent_size=3):
+    def __init__(self, in_channels=30, latent_size=3):
         super(ConvAutoencoder, self).__init__()
         # encoder
         # conv layer (depth from 30 --> 1), 3x3 kernels
-        self.enc = nn.Conv2d(in_features, latent_size, 3)
+        self.enc = nn.Conv2d(in_channels, latent_size, 3)
         # decoder
-        self.dec = nn.ConvTranspose2d(latent_size, in_features, 3)
+        self.dec = nn.ConvTranspose2d(latent_size, in_channels, 3)
 
     def forward(self, x):
         # encoder
@@ -54,7 +76,7 @@ def train_autoencoder(net, trainloader, patch_size, num_epochs, learning_rate, d
         running_loss = 0.0
         for batch in trainloader:
             batch = batch.to(device)
-            # batch = batch.view(batch.size(0), -1) # if linear autoencoder
+            batch = batch.view(batch.size(0), -1) # if linear autoencoder
             # if conv autoencoder
             optimizer = optim.Adam(net.parameters(), lr=learning_rate)
             optimizer.zero_grad()

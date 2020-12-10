@@ -13,8 +13,9 @@ class LinearAutoencoder(nn.Module):
     """
     def __init__(self, patch_size, num_neurons):
         super(LinearAutoencoder, self).__init__()
+
         in_features = 30*patch_size*patch_size
-        print(in_features)
+
         # encoder
         self.enc = nn.Linear(in_features=in_features, out_features=num_neurons)
         # decoder

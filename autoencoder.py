@@ -14,7 +14,7 @@ from spectral import *
 
 from utilities import sample_patches, get_device, save_decoded_image, viz_image_reconstruction
 from encoders import LinearAutoencoder, ConvAutoencoder, train_audoencoder
-
+from data_loading import data_initializer
 
 # paths
 IM_PATH = 'data/landscapes_fla'
@@ -32,25 +32,8 @@ for PATCH_SIZE in grid_PATCH_SIZE:
     for LEARNING_RATE in grid_LEARNING_RATE:
     
         print(f'Patch size: {PATCH_SIZE}, Learning rate: {LEARNING_RATE}')
-    
-        # Load image as array
-        train_im = envi.open(os.path.join(IM_PATH, 'landscape01.hdr'), os.path.join(IM_PATH, 'landscape01.fla'))
-        test_im = envi.open(os.path.join(IM_PATH,'landscape02.hdr'), os.path.join(IM_PATH,'landscape02.fla'))
-        # Get samples
-        trainset = sample_patches(train_im, NUM_PATCHES, PATCH_SIZE)
-        testset = sample_patches(test_im, NUM_PATCHES, PATCH_SIZE)
-        
-        trainloader = DataLoader(
-            trainset,
-            batch_size=BATCH_SIZE,
-            shuffle=True
-        )
-        testloader = DataLoader(
-            testset,
-            batch_size=BATCH_SIZE,
-            shuffle=True
-        )
-        
+
+        trainloader, testloader = data_initializer(patch_size=PATCH_SIZE)  
         # get the computation device
         device = get_device()
         print(f'device: {device}')

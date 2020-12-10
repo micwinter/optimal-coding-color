@@ -32,29 +32,29 @@ class ConvAutoencoder(nn.Module):
     """
     Second version of the model. The model is convolutional, and takes in HxWxD, down to number of neurons.
     """
-    def __init__(self, in_features=30, num_neurons=100):
+    def __init__(self, in_features=30, latent_size=3):
         super(ConvAutoencoder, self).__init__()
         # encoder
         # conv layer (depth from 30 --> 1), 3x3 kernels
-        self.enc = nn.Conv2d(30, 1, 3)
+        self.enc = nn.Conv2d(in_features, latent_size, 3)
         # decoder
-        self.dec = nn.ConvTranspose2d(1, 30, 3)
+        self.dec = nn.ConvTranspose2d(latent_size, in_features, 3)
 
     def forward(self, x):
         # encoder
         x = F.relu(self.enc(x))
         # decoder
-        x = torch.sigmoid(self.dec(x)) # try with sigmoid or relu
+        x = F.relu(self.dec(x)) # try with sigmoid or relu
         return x
 
-def train_audoencoder(net, trainloader, patch_size, num_epochs, learning_rate, device, criterion):
+def train_autoencoder(net, trainloader, patch_size, num_epochs, learning_rate, device, criterion):
     train_loss = []
 
     for epoch in range(num_epochs):
         running_loss = 0.0
         for batch in trainloader:
             batch = batch.to(device)
-            batch = batch.view(batch.size(0), -1) # if linear autoencoder
+            # batch = batch.view(batch.size(0), -1) # if linear autoencoder
             # if conv autoencoder
             optimizer = optim.Adam(net.parameters(), lr=learning_rate)
             optimizer.zero_grad()

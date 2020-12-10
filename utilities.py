@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import torch
 from torchvision.utils import save_image
 import numpy as np
+from torch.utils.data import DataLoader
+from spectral import *
+
 
 def sample_patches(image, num_patches, patch_size):
     """
@@ -27,6 +30,55 @@ def sample_patches(image, num_patches, patch_size):
 
     return np.stack(samples).transpose(0,3,1,2)
 
+
+def data_initializer(patch_size=16,
+    IM_PATH = '/media/big_hdd/opt-color/landscapes_fla',  # YOUR DATA PATH HERE,
+    train_list=[1,2],
+    # test_list=[2],
+    batch_size=128,
+    num_patches=1000,
+    ):
+    trainset = []
+    # testset= []
+
+    shared_wavelength = np.arange(430, 730, 10)
+    # find shared wavelength
+    for i in train_list:
+        img = envi.open(os.path.join(IM_PATH, 'hyperspectral_%s.hdr' %i), os.path.join(IM_PATH, 'hyperspectral_%s.fla' %i))
+        wavelength_i = np.array([float(wl) for wl in img.metadata['wavelength']])
+        shared_wavelength = [i for i in shared_wavelength if i in wavelength_i]
+        # only select channels of shared wavelenghts
+    for i in train_list:
+        img = envi.open(os.path.join(IM_PATH, 'hyperspectral_%s.hdr' %i),  os.path.join(IM_PATH, 'hyperspectral_%s.fla' %i))
+        wavelength_i = np.array([float(wl) for wl in                   img.metadata['wavelength']])
+        idx = [np.where(wavelength_i==k)[0][0] for k in shared_wavelength]
+        img = img[:, :, idx]
+        trainset.append(sample_patches(img, num_patches, patch_size))
+    trainset = np.concatenate(trainset, axis=0)
+    num_channels = img.shape[-1]
+
+    # # Load image as array
+    # for i in train_list:
+    #     train_im = envi.open(os.path.join(IM_PATH, 'hyperspectral_{}.hdr'.format(i)), os.path.join(IM_PATH, 'hyperspectral_{}.fla'.format(i)))
+    #     trainset.append(sample_patches(train_im, num_patches, patch_size))
+    # trainset = np.concatenate(trainset)
+    # for i in test_list:
+    #     test_im = envi.open(os.path.join(IM_PATH,'hyperspectral_{}.hdr'.format(i)), os.path.join(IM_PATH,'hyperspectral_{}.fla'.format(i)))
+    #     testset.append(sample_patches(test_im, num_patches, patch_size))
+    # testset = np.concatenate(testset)
+    trainloader = DataLoader(
+        trainset,
+        batch_size=batch_size,
+        shuffle=True
+    )
+    # testloader = DataLoader(
+    #     testset,
+    #     batch_size=batch_size,
+    #     shuffle=True
+    # )
+    return trainloader, num_channels#, testloader
+
+
 # utility functions
 def get_device():
     if torch.cuda.is_available():
@@ -34,6 +86,7 @@ def get_device():
     else:
         device = 'cpu'
     return device
+
 
 def save_decoded_image(img, epoch, save_path):
     img = img.view(img.size(0), 1, 60, 60)

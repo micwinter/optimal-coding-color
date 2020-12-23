@@ -12,34 +12,6 @@ from glob import glob
 
 now = datetime.datetime.now() # current timestamp
 
-
-# IM_PATH = '/media/big_hdd/opt-color/landscapes_fla'
-#
-
-# # Load in hyperspectral image
-# img = envi.open(os.path.join(IM_PATH, 'hyperspectral_1.hdr'), os.path.join(IM_PATH, 'hyperspectral_1.fla'))
-# wavelength_i = np.array([float(wl) for wl in img.metadata['wavelength']])
-# wavelength_i = np.array([int(wl) for wl in wavelength_i])
-# img = img.load()  # load in the image
-
-
-
-# IM_PATH = '/media/big_hdd/opt-color/brelstaff/yleaves'
-
-
-# # Load in hyperspectral image
-# import ipdb; ipdb.set_trace()
-# img = envi.open(os.path.join(IM_PATH, 'yleaves.700'))
-# img = img.load()  # load in the image
-#
-# # Run PCA on the image
-# pca = PCA(n_components=3)
-# img = img.reshape(-1, img.shape[-1])
-# pca.fit(img)
-
-
-
-# -------------------------
 IM_PATH = '/media/big_hdd/opt-color/hyperspec_ims'
 im_list = glob(os.path.join(IM_PATH, '*.mat'))
 ims = []
@@ -64,7 +36,6 @@ pca.fit(ims.T)
 
 
 # Project to first three dimensions and plot results
-# import ipdb; ipdb.set_trace()
 comp = pca.components_
 fig = plt.figure(figsize=(15,5))
 plt.plot(comp.T)
